@@ -9,3 +9,7 @@ subExerciseRouter.post("/createSubExercise",upload.single("subExerciseImage"), c
 
 subExerciseRouter.get("/getSubExercise/:exerciseId", getExerciseAccording)
 
+
+
+
+

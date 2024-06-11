@@ -42,7 +42,7 @@ export const getExerciseAccording = async (req, res) => {
     try {
         const  {exerciseId}  = req.params
 
-        //find krna hai
+        //find krna hai.....................
         const check = await SubExercise.findById({ exerciseId})
 
         if(check) {
@@ -65,6 +65,4 @@ export const getExerciseAccording = async (req, res) => {
             message: error.message
         })
     }
-
-
 }
