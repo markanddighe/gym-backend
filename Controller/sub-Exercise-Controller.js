@@ -42,8 +42,7 @@ export const getExerciseAccording = async (req, res) => {
     try {
         const  {exerciseId}  = req.params
 
-        //find krna hai.....................
-        const check = await SubExercise.findById({ exerciseId})
+        const check = await SubExercise.find({ exerciseId})
 
         if(check) {
             res.status(200).send({

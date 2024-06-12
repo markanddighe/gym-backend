@@ -1,6 +1,9 @@
 import mongoose from "mongoose"
+import dotenv from "dotenv"
 
-const url = "mongodb://localhost:27017/gymproject"
+dotenv.config()
+
+const url =process.env.MONGO_URL
 
 export const connectDb = async () => {
 
