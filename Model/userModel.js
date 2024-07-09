@@ -20,6 +20,11 @@ const userModel = new mongoose.Schema({
 
     address : {
         type : String
+    },
+
+    isAdmin : {
+        type : Boolean,
+        default : false
     }
     
 },{timestamps : true})

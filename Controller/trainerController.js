@@ -3,7 +3,12 @@ import { Trainer } from "../Model/trainerModel.js";
 
 export const createTrainer = async (req, res) => {
 
-    const { fullName, email, phoneNumber, gender, isActive, sportstype } = req.body
+    try {
+        const { fullName, email, phoneNumber, gender, isActive, sportstype } = req.body
+
+    const trainerImage = req.file.filename
+
+    // const trainerImage = req.file ? req.file.path : '';
 
     if (!fullName) {
         return res.status(400).send({
@@ -22,7 +27,7 @@ export const createTrainer = async (req, res) => {
     }
 
     const saveTrainer = new Trainer({
-        fullName, email, phoneNumber, gender, isActive, sportstype
+        fullName, email, phoneNumber, gender, isActive, sportstype, trainerImage
     })
 
     const newTrainer = await saveTrainer.save()
@@ -32,6 +37,11 @@ export const createTrainer = async (req, res) => {
         message: "new created trainer",
         trainer: newTrainer
     })
+    } catch (error) {
+        res.send(error.message)
+    }
+
+    
 }
 
 

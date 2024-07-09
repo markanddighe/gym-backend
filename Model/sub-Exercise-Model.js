@@ -13,7 +13,20 @@ const subExerciseSchema = new mongoose.Schema({
     exerciseId : {
         type : mongoose.Schema.Types.ObjectId,
         ref : "Exercise"
+    },
+
+    calenderId : {
+        type : mongoose.Schema.Types.ObjectId,
+        ref : "plansCalender"
+    },
+
+    likesSubExercise : {
+        
+            type : mongoose.Schema.Types.ObjectId,
+            ref : "User"
     }
+
+
 },{timestamps : true})
 
 

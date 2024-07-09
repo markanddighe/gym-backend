@@ -9,6 +9,8 @@ import { sportTyperouter } from "./Routes/sportTypeRouter.js"
 import { scheduleRouter } from "./Routes/scheduleRouter.js"
 import { exerciseRouter } from "./Routes/exerciseRouter.js"
 import { subExerciseRouter } from "./Routes/sub-Exercise-Router.js"
+import { subToSubExerciseRouter } from "./Routes/sub-to-sub-Exercise-Router.js"
+import { plansRouter } from "./Routes/plansRouter.js"
 import cors from "cors"
 
 const app = express()
@@ -29,6 +31,8 @@ app.use("/", sportTyperouter)
 app.use("/", scheduleRouter)
 app.use("/", exerciseRouter)
 app.use("/", subExerciseRouter)
+app.use("/", subToSubExerciseRouter)
+app.use("/", plansRouter)
 
 
 app.use("/", express.static("public/upload"))

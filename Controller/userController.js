@@ -8,8 +8,8 @@ export const userRegister = async (req, res) => {
         const { fullName, email, password, phoneNumber, address } = req.body
 
         if (!fullName || !email || !password || !phoneNumber || !address) {
-            return res.status(400).send({
-                status: 400,
+            return res.status(401).send({
+                status: 401,
                 message: "enter the details"
             })
         }
@@ -42,9 +42,56 @@ export const userRegister = async (req, res) => {
 }
 
 
+// export const loginUser = async (req, res) => {
+
+//     const { email, phoneNumber, password } = req.body
+//     if (!password) {
+//         return res.status(400).send({
+//             status: 400,
+//             message: "enter the password"
+//         })
+//     }
+
+//     let user
+//     if (email) {
+//         user = await User.findOne({ email })
+//     }
+//     else {
+//         user = await User.findOne({ phoneNumber })
+//     }
+//     if (!user) {
+//         return res.status(404).send({
+//             status: 404,
+//             message: "no user found"
+//         })
+//     }
+
+//     const checkPassword = await comparePassword(password, user.password)
+//     if (!checkPassword) {
+//         return res.status(404).send({
+//             status: 404,
+//             message: "no user found"
+//         })
+//     }
+
+//     const payload = {
+//         role: "user",
+//         _id: user._id,
+//     }
+//     const token = await generateToken(payload)
+//     res.status(200).send({
+//         status: 200,
+//         message: "login user",
+//         user: payload, token
+//     })
+// }
+
+
+
 export const loginUser = async (req, res) => {
 
-    const { email, phoneNumber, password } = req.body
+    try {
+        const { email, password } = req.body
     if (!password) {
         return res.status(400).send({
             status: 400,
@@ -52,47 +99,73 @@ export const loginUser = async (req, res) => {
         })
     }
 
-    let user
-    if (email) {
-        user = await User.findOne({ email })
-    }
-    else {
-        user = await User.findOne({ phoneNumber })
-    }
-    if (!user) {
-        return res.status(404).send({
-            status: 404,
-            message: "no user found"
+    const checkUser = await User.findOne({ email })
+
+    if (!checkUser) {
+        return res.status(401).send({
+            status: 401,
+            message: "wrong email"
         })
     }
 
-    const checkPassword = await comparePassword(password, user.password)
+    const checkPassword = await comparePassword(password, checkUser.password)
+
     if (!checkPassword) {
-        return res.status(404).send({
-            status: 404,
-            message: "no user found"
+        return res.status(400).send({
+            status: 400,
+            message: "wrong password"
         })
     }
 
-    const payload = {
-        role: "user",
-        _id: user._id,
+    if (checkUser.isAdmin === false) {
+
+        // const payload = {
+        //     _id: checkUser._id,
+        // }
+
+        const _id = checkUser._id
+
+        const token = await generateToken({_id})
+
+        res.status(200).send({
+            status: 200,
+            message: "welcome user",
+            token,
+            _id
+        })
     }
-    const token = await generateToken(payload)
-    res.status(200).send({
-        status: 200,
-        message: "login user",
-        user: payload, token
-    })
+
+    else {
+
+        // const payload = {
+         const _id = checkUser._id
+        // }
+        const token = await generateToken({_id})
+
+        res.status(200).send({
+            status: 200,
+            message: "welcome admin",
+            token,
+            _id
+        })
+    }
+
+
+    } catch (error) {
+        res.status(500).send({
+            status: 500,
+            message: error.message
+        })
+    }
 }
 
 
 export const singleUser = async (req, res) => {
 
     try {
-        const { userId } = req.query
+        const { _id } = req.params
 
-        const user = await User.findOne({ _id: userId })
+        const user = await User.findById({ _id: _id })
         if (user) {
             res.status(200).send({
                 status: 200,
@@ -120,30 +193,30 @@ export const updateUser = async (req, res) => {
     try {
         const { fullName, phoneNumber, address } = req.body
 
-    const { id } = req.params
+        const { _id } = req.params
 
-    const user = await User.findByIdAndUpdate({ _id: id }, {
-        fullName, phoneNumber, address
-    }, { new: true })
+        const user = await User.findByIdAndUpdate({ _id: _id }, {
+            fullName, phoneNumber, address
+        }, { new: true })
 
-    if (user) {
-        res.status(200).send({
-            status: 200,
-            message: "update user profile",
-            updateUser: user
-        })
-    }
-    else {
-        res.status(404).send({
-            status: 404,
-            message: "no user found"
-        })
-    }
+        if (user) {
+            res.status(200).send({
+                status: 200,
+                message: "update user profile",
+                updateUser: user
+            })
+        }
+        else {
+            res.status(404).send({
+                status: 404,
+                message: "no user found"
+            })
+        }
     } catch (error) {
         res.send(error.message)
     }
 
-    
+
 }
 
 
@@ -197,5 +270,38 @@ export const getAllUsers = async (req, res) => {
             status: 500,
             message: error.message
         })
+    }
+}
+
+
+
+export const changePassword = async (req, res) => {
+
+    try {
+        const {email,password} = req.body
+   
+    const data = await User.findOne({email})
+    
+
+    if(data)
+    {
+        const newpassword = await hashPassword(password)
+
+        const changeUserPassword = await User.findOneAndUpdate({email:email},{$set:{
+            password:newpassword    
+
+        }})
+        await changeUserPassword.save();
+
+        res.status(200).send({message:"Password is changed"});
+
+    }
+    else{
+        res.status(400).send({message:"email is not found"})
+    }
+    } catch (err) {
+   
+        res.status(400).send({error:err.message});
+       
     }
 }

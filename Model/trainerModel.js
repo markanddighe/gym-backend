@@ -23,6 +23,11 @@ const trainerSchema = new mongoose.Schema({
         default : false
     },
 
+    trainerImage : {
+        type : String
+    },
+    
+
     sportstype : [{
         type : mongoose.Schema.Types.ObjectId,
         ref : "Sportstype"
