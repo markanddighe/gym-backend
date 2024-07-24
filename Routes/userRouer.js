@@ -1,5 +1,5 @@
 import express from "express"
-import { changePassword, deleteUser, getAllUsers, loginUser, singleUser, updateUser, userRegister } from "../Controller/userController.js"
+import { applyPayment, changePassword, deleteUser, getAllUserPayment, getAllUsers, getPayment, loginUser, singleUser, updateUser, userRegister } from "../Controller/userController.js"
 
 export const userRouer = express.Router()
 
@@ -17,3 +17,21 @@ userRouer.get("/usersList", getAllUsers)
 
 
 userRouer.post("/changePassword", changePassword)
+
+
+userRouer.post("/applyPayment", applyPayment)
+
+
+userRouer.get("/getPayment/:userId", getPayment)
+
+
+userRouer.get("/getAllUserPayment", getAllUserPayment)
+
+
+
+
+
+
+
+
+

@@ -1,6 +1,9 @@
 import express from "express"
 import { createSubExercise, getAllLike, getExerciseAccording, getExercises, likeSubExercises, updateSubExercise } from "../Controller/sub-Exercise-Controller.js"
 import { upload } from "../common/imageUpload.js"
+import { checkAuth } from "../middleware/checkAuth.js"
+
+
 
 export const subExerciseRouter = express.Router()
 

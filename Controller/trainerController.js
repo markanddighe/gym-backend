@@ -6,9 +6,9 @@ export const createTrainer = async (req, res) => {
     try {
         const { fullName, email, phoneNumber, gender, isActive, sportstype } = req.body
 
-    const trainerImage = req.file.filename
+    // const trainerImage = req.file.filename
 
-    // const trainerImage = req.file ? req.file.path : '';
+    const trainerImage = req.file ? req.file.filename : null;
 
     if (!fullName) {
         return res.status(400).send({

@@ -6,7 +6,9 @@ export const createProduct = async (req, res) => {
     try {
         const { productName, price, colors, category, stocks, description } = req.body
 
-        const productImage = req.file.filename
+        // const productImage = req.file.filename
+
+        const productImage = req.file ? req.file.filename : null;
 
         if (!productName) {
             return res.status(400).send({

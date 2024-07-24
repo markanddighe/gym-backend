@@ -1,6 +1,14 @@
 import { comparePassword, hashPassword } from "../common/password.js";
 import { generateToken } from "../common/token.js";
+import { Payment } from "../Model/paymentModel.js";
 import { User } from "../Model/userModel.js";
+import Stripe from "stripe"
+import dotenv from 'dotenv';
+import { Plans } from "../Model/plansModel.js";
+dotenv.config()
+
+var s = process.env.SECRET_KEY
+const stripe = new Stripe(s)
 
 export const userRegister = async (req, res) => {
 
@@ -92,63 +100,63 @@ export const loginUser = async (req, res) => {
 
     try {
         const { email, password } = req.body
-    if (!password) {
-        return res.status(400).send({
-            status: 400,
-            message: "enter the password"
-        })
-    }
+        if (!password) {
+            return res.status(400).send({
+                status: 400,
+                message: "enter the password"
+            })
+        }
 
-    const checkUser = await User.findOne({ email })
+        const checkUser = await User.findOne({ email })
 
-    if (!checkUser) {
-        return res.status(401).send({
-            status: 401,
-            message: "wrong email"
-        })
-    }
+        if (!checkUser) {
+            return res.status(401).send({
+                status: 401,
+                message: "wrong email"
+            })
+        }
 
-    const checkPassword = await comparePassword(password, checkUser.password)
+        const checkPassword = await comparePassword(password, checkUser.password)
 
-    if (!checkPassword) {
-        return res.status(400).send({
-            status: 400,
-            message: "wrong password"
-        })
-    }
+        if (!checkPassword) {
+            return res.status(400).send({
+                status: 400,
+                message: "wrong password"
+            })
+        }
 
-    if (checkUser.isAdmin === false) {
+        if (checkUser.isAdmin === false) {
 
-        // const payload = {
-        //     _id: checkUser._id,
-        // }
+            // const payload = {
+            //     _id: checkUser._id,
+            // }
 
-        const _id = checkUser._id
+            const _id = checkUser._id
 
-        const token = await generateToken({_id})
+            const token = await generateToken({ _id })
 
-        res.status(200).send({
-            status: 200,
-            message: "welcome user",
-            token,
-            _id
-        })
-    }
+            res.status(200).send({
+                status: 200,
+                message: "welcome user",
+                token,
+                _id
+            })
+        }
 
-    else {
+        else {
 
-        // const payload = {
-         const _id = checkUser._id
-        // }
-        const token = await generateToken({_id})
+            // const payload = {
+            const _id = checkUser._id
+            // }
+            const token = await generateToken({ _id })
 
-        res.status(200).send({
-            status: 200,
-            message: "welcome admin",
-            token,
-            _id
-        })
-    }
+            res.status(200).send({
+                status: 200,
+                message: "welcome admin",
+                token,
+                _id
+            })
+        }
 
 
     } catch (error) {
@@ -278,30 +286,204 @@ export const getAllUsers = async (req, res) => {
 export const changePassword = async (req, res) => {
 
     try {
-        const {email,password} = req.body
-   
-    const data = await User.findOne({email})
-    
+        const { email, password } = req.body
 
-    if(data)
-    {
-        const newpassword = await hashPassword(password)
+        const data = await User.findOne({ email })
 
-        const changeUserPassword = await User.findOneAndUpdate({email:email},{$set:{
-            password:newpassword    
 
-        }})
-        await changeUserPassword.save();
+        if (data) {
+            const newpassword = await hashPassword(password)
 
-        res.status(200).send({message:"Password is changed"});
+            const changeUserPassword = await User.findOneAndUpdate({ email: email }, {
+                $set: {
+                    password: newpassword
 
-    }
-    else{
-        res.status(400).send({message:"email is not found"})
-    }
+                }
+            })
+            await changeUserPassword.save();
+
+            res.status(200).send({ message: "Password is changed" });
+
+        }
+        else {
+            res.status(400).send({ message: "email is not found" })
+        }
     } catch (err) {
-   
-        res.status(400).send({error:err.message});
-       
+
+        res.status(400).send({ error: err.message });
+
     }
 }
+
+
+
+export const applyPayment = async (req, res) => {
+    const { userId, planPaymentId } = req.body;
+
+    try {
+        // Find the user
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Find the plan based on planPaymentId
+        const plan = await Plans.findById(planPaymentId);
+
+        if (!plan) {
+            return res.status(404).json({ error: 'Plan not found' });
+        }
+
+        if (!plan.amount) {
+            return res.send("no amount")
+        }
+
+
+        const lineItems = {
+            price_data: {
+                currency: "USD",
+                product_data: {
+                    name: plan.duration
+                },
+                unit_amount: plan.amount * 100,
+            },
+            quantity: 1,
+        };
+
+        const session = await stripe.checkout.sessions.create({
+            payment_method_types: ['card'],
+            line_items: [lineItems],
+            mode: 'payment',
+            success_url: 'http://localhost:3000/success',
+            cancel_url: 'http://localhost:8000/cancel',
+        });
+
+        const paymentData = new Payment({
+            userId,
+            planPaymentId,
+            sessionId: session.id,
+        })
+
+        paymentData.save()
+
+        res.status(200).json({ url: session.url, sessionId: session.id });
+
+    } catch (error) {
+        console.error('Error applying payment:', error);
+        res.status(500).send('Failed to apply payment');
+    }
+};
+
+
+
+
+
+
+export const getAllUserPayment = async (req, res) => {
+
+    try {
+
+
+        const allPayment = await Payment.find({}).populate({
+            path: "userId",
+            select: "fullName"
+        }).populate({
+            path: "planPaymentId",
+            select: "duration amount"
+        })
+
+        var payData = {}
+
+        const data = await allPayment.map((items) => {
+            items.status
+            payData = items.status
+            // console.log(items.status);
+        })
+
+        console.log(payData);
+
+        const payment = await Payment.find({});
+        // console.log(payment,"54545");
+
+        if (!payment) {
+            return res.status(404).json({ error: 'Payment record not found' });
+        }
+
+        // console.log(session,"989892");
+
+
+        res.status(200).json({ allPayment });
+
+    } catch (error) {
+        res.send(error.message)
+    }
+
+
+}
+
+
+
+
+
+export const getPayment = async (req, res) => {
+
+    const { userId } = req.params;
+
+    try {
+        // Fetch all payments for the given userId and populate related fields
+        const allPayments = await Payment.find({ userId })
+            .populate({
+                path: 'userId',
+                select: 'fullName',
+            })
+            .populate({
+                path: 'planPaymentId',
+                select: 'duration amount',
+            });
+
+        if (!allPayments || allPayments.length === 0) {
+            return res.status(404).json({ error: 'No payment records found' });
+        }
+
+        // Process each payment record and update status
+        const updatedPayments = await Promise.all(
+            allPayments.map(async (payment) => {
+                const { sessionId } = payment;
+
+                if (!sessionId) {
+                    throw new Error('Session ID is missing in one of the payment records');
+                }
+
+                const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+                if (!session) {
+                    throw new Error('Stripe session not found for session ID: ' + sessionId);
+                }
+
+                const paymentStatus = session.payment_status;
+
+                const updatedPayment = await Payment.findByIdAndUpdate(
+                    payment._id,
+                    { $set: { status: paymentStatus } },
+                    { new: true }
+                )
+                    .populate({
+                        path: 'userId',
+                        select: 'fullName',
+                    })
+                    .populate({
+                        path: 'planPaymentId',
+                        select: 'duration amount',
+                    });
+
+                return updatedPayment;
+            })
+        );
+
+        res.status(200).json({ updatedPayments });
+
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};

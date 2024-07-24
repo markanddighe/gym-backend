@@ -271,16 +271,6 @@ export const createPlansWeek = async (req, res) => {
 
     const { weekName, plansAboutId, plansId } = req.body
 
-
-    const checkPlansWeek = await PlansWeek.findOne({ weekName })
-
-    if (checkPlansWeek) {
-        return res.status(400).send({
-            status: 400,
-            message: "have already"
-        })
-    }
-
     const savePlansWeek = new PlansWeek({
         weekName, plansAboutId, plansId
     })

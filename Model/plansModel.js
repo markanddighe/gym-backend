@@ -17,12 +17,53 @@ const plansSchema = new mongoose.Schema({
 
    lock : {
     type : Boolean,
-}
+},
+  amount:{
+    type:Number
+  }
 
 },{timestamps : true})
 
 
 export const Plans = mongoose.model("plans", plansSchema)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

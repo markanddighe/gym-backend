@@ -21,7 +21,6 @@ const subExerciseSchema = new mongoose.Schema({
     },
 
     likesSubExercise : {
-        
             type : mongoose.Schema.Types.ObjectId,
             ref : "User"
     }

@@ -1,4 +1,5 @@
 import { SubExercise } from "../Model/sub-Exercise-Model.js";
+import { User } from "../Model/userModel.js";
 
 
 export const createSubExercise = async (req, res) => {
@@ -151,9 +152,10 @@ export const updateSubExercise = async (req, res) => {
 
 
     res.send(check)
-
-
 }
+
+
+
 
 
 
